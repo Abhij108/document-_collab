@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Collaboration Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .auth-box {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .auth-box h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+            font-size: 28px;
+        }
+
+        .auth-box h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+
+        button {
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .switch-text {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+        }
+
+        .switch-text span {
+            color: #667eea;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        /* Dashboard Styles */
+        .dashboard {
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 28px;
+        }
+
+        .user-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid white;
+            font-size: 14px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .content {
+            padding: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .section {
+            background: white;
+            padding: 30px;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+
+        .form-group-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        textarea {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            min-height: 150px;
+            font-family: monospace;
+            resize: vertical;
+        }
+
+        .docs-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .doc-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            border: 1px solid #eee;
+        }
+
+        .doc-item h3 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .doc-item p, .doc-item small {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .doc-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .small-btn {
+            padding: 6px 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .small-btn:hover {
+            background: #5568d3;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .doc-viewer {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+        }
+
+        .empty-text {
+            color: #999;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .success {
+            color: #28a745;
+            padding: 10px;
+            background: #d4edda;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        .error {
+            color: #dc3545;
+            padding: 10px;
+            background: #f8d7da;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .nav-tab {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .nav-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .user-info {
+                justify-content: center;
+            }
+
+            .doc-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .doc-actions {
+                width: 100%;
+            }
+
+            .doc-actions button {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Auth Page -->
+<div id="authPage" class="auth-container">
+    <div class="auth-box">
+        <h1>📄 Document Collaboration Tool</h1>
+        
+        <div id="loginForm">
+            <h2>Login</h2>
+            <div class="form-group">
+                <input type="email" id="loginEmail" placeholder="Email" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <button onclick="handleLogin()">Login</button>
+            </div>
+            <div class="switch-text">
+                Don't have an account? 
+                <span onclick="switchToRegister()">Register here</span>
+            </div>
+        </div>
+
+        <div id="registerForm" class="hidden">
+            <h2>Register</h2>
+            <div class="form-group">
+                <input type="text" id="regUsername" placeholder="Username" required>
+                <input type="email" id="regEmail" placeholder="Email" required>
+                <input type="password" id="regPassword" placeholder="Password" required>
+                <input type="password" id="regConfirmPassword" placeholder="Confirm Password" required>
+                <button onclick="handleRegister()">Register</button>
+            </div>
+            <div class="switch-text">
+                Already have an account? 
+                <span onclick="switchToLogin()">Login here</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Dashboard Page -->
+<div id="dashboardPage" class="dashboard hidden">
+    <div class="header">
+        <h1>📄 Document Collaboration Tool</h1>
+        <div class="user-info">
+            <span>Welcome, <span id="username"></span>!</span>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="content">
+        <!-- Create Document Section -->
+        <div class="section">
+            <h2>✨ Create New Document</h2>
+            <div id="createMessage"></div>
+            <div class="form-group-section">
+                <input type="text" id="docName" placeholder="Document Name" required>
+                <textarea id="docContent" placeholder="Document Content"></textarea>
+                <button onclick="handleCreateDocument()">Create Document</button>
+            </div>
+        </div>
+
+        <!-- Tabs for Documents -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="switchTab('my-docs')">📚 My Documents</button>
+            <button class="nav-tab" onclick="switchTab('shared-docs')">🤝 Shared With Me</button>
+            <button class="nav-tab" onclick="switchTab('share')">📤 Share Document</button>
+        </div>
+
+        <!-- My Documents -->
+        <div id="myDocsSection" class="section">
+            <h2>📚 My Documents</h2>
+            <div id="myDocsList" class="docs-list">
+                <div class="empty-text">Loading documents...</div>
+            </div>
+        </div>
+
+        <!-- Shared Documents -->
+        <div id="sharedDocsSection" class="section hidden">
+            <h2>🤝 Shared With Me</h2>
+            <div id="sharedDocsList" class="docs-list">
+                <div class="empty-text">No documents shared with you</div>
+            </div>
+        </div>
+
+        <!-- Share Document -->
+        <div id="shareSection" class="section hidden">
+            <h2>📤 Share Document</h2>
+            <div id="shareMessage"></div>
+            <div class="form-group-section">
+                <label>Select Document to Share:</label>
+                <select id="docToShare" style="padding: 12px; border: 1px solid #ddd; border-radius: 5px;">
+                    <option value="">Choose a document...</option>
+                </select>
+                <input type="email" id="shareEmail" placeholder="Recipient Email" required>
+                <select id="sharePermission" style="padding: 12px; border: 1px solid #ddd; border-radius: 5px;">
+                    <option value="viewer">Viewer (Read Only)</option>
+                    <option value="editor">Editor (Can Edit)</option>
+                </select>
+                <button onclick="handleShareDocument()">Share Document</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Document Modal -->
+    <div id="viewModal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal('viewModal')">✕</button>
+            <h2>Document Content</h2>
+            <div id="viewDocContent" class="doc-viewer"></div>
+            <p>Access: <strong id="viewPermission"></strong></p>
+            <button onclick="closeModal('viewModal')" style="margin-top: 15px;">Close</button>
+        </div>
+    </div>
+
+    <!-- Edit Document Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal('editModal')">✕</button>
+            <h2>Edit Document</h2>
+            <textarea id="editDocContent" style="width: 100%; min-height: 300px;"></textarea>
+            <button onclick="handleEditDocument()" style="margin-top: 15px; width: 100%;">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_URL = 'http://localhost:5000/api';
+    let currentUser = null;
+    let token = localStorage.getItem('token');
+    let viewingDocId = null;
+    let editingDocId = null;
+    let documents = [];
+    let sharedDocs = [];
+
+    // Init
+    if (token) {
+        showDashboard();
+    }
+
+    // Auth Functions
+    function switchToRegister() {
+        document.getElementById('loginForm').classList.add('hidden');
+        document.getElementById('registerForm').classList.remove('hidden');
+    }
+
+    function switchToLogin() {
+        document.getElementById('loginForm').classList.remove('hidden');
+        document.getElementById('registerForm').classList.add('hidden');
+    }
+
+    async function handleLogin() {
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+
+        if (!email || !password) {
+            alert('Please fill all fields');
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                token = data.token;
+                currentUser = data.user;
+                localStorage.setItem('token', token);
+                showDashboard();
+            } else {
+                alert(data.message || 'Login failed');
+            }
+        } catch (err) {
+            alert('Error: ' + err.message);
+        }
+    }
+
+    async function handleRegister() {
+        const username = document.getElementById('regUsername').value;
+        const email = document.getElementById('regEmail').value;
+        const password = document.getElementById('regPassword').value;
+        const confirmPassword = document.getElementById('regConfirmPassword').value;
+
+        if (!username || !email || !password || !confirmPassword) {
+            alert('Please fill all fields');
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            alert('Passwords do not match');
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email, password })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                alert('Registration successful! Please login.');
+                switchToLogin();
+                document.getElementById('regUsername').value = '';
+                document.getElementById('regEmail').value = '';
+                document.getElementById('regPassword').value = '';
+                document.getElementById('regConfirmPassword').value = '';
+            } else {
+                alert(data.message || 'Registration failed');
+            }
+        } catch (err) {
+            alert('Error: ' + err.message);
+        }
+    }
+
+    function handleLogout() {
+        token = null;
+        currentUser = null;
+        localStorage.removeItem('token');
+        document.getElementById('authPage').classList.remove('hidden');
+        document.getElementById('dashboardPage').classList.add('hidden');
+        document.getElementById('loginEmail').value = '';
+        document.getElementById('loginPassword').value = '';
+    }
+
+    // Dashboard Functions
+    function showDashboard() {
+        document.getElementById('authPage').classList.add('hidden');
+        document.getElementById('dashboardPage').classList.remove('hidden');
+        document.getElementById('username').textContent = currentUser?.username || 'User';
+        fetchDocuments();
+    }
+
+    async function fetchDocuments() {
+        try {
+            const [myDocs, shared] = await Promise.all([
+                fetch(`${API_URL}/my-documents`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }).then(r => r.json()),
+                fetch(`${API_URL}/shared-documents`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }).then(r => r.json())
+            ]);
+
+            documents = myDocs;
+            sharedDocs = shared;
+            displayMyDocuments();
+            displaySharedDocuments();
+            populateShareDropdown();
+        } catch (err) {
+            console.error('Failed to fetch documents:', err);
+        }
+    }
+
+    function displayMyDocuments() {
+        const list = document.getElementById('myDocsList');
+        if (documents.length === 0) {
+            list.innerHTML = '<div class="empty-text">No documents yet</div>';
+            return;
+        }
+
+        list.innerHTML = documents.map(doc => `
+            <div class="doc-item">
+                <div>
+                    <h3>${escapeHtml(doc.document_name)}</h3>
+                    <p>Type: ${doc.document_type}</p>
+                    <small>Created: ${new Date(doc.created_at).toLocaleDateString()}</small>
+                </div>
+                <div class="doc-actions">
+                    <button class="small-btn" onclick="viewDocument(${doc.id})">View</button>
+                    <button class="small-btn" onclick="editDocument(${doc.id})">Edit</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function displaySharedDocuments() {
+        const list = document.getElementById('sharedDocsList');
+        if (sharedDocs.length === 0) {
+            list.innerHTML = '<div class="empty-text">No documents shared with you</div>';
+            return;
+        }
+
+        list.innerHTML = sharedDocs.map(doc => `
+            <div class="doc-item">
+                <div>
+                    <h3>${escapeHtml(doc.document_name)}</h3>
+                    <p>Owner: ${escapeHtml(doc.owner)}</p>
+                    <p>Permission: <strong>${doc.permission}</strong></p>
+                </div>
+                <button class="small-btn" onclick="viewDocument(${doc.id})">View</button>
+            </div>
+        `).join('');
+    }
+
+    function populateShareDropdown() {
+        const select = document.getElementById('docToShare');
+        select.innerHTML = '<option value="">Choose a document...</option>' + 
+            documents.map(doc => 
+                `<option value="${doc.id}">${escapeHtml(doc.document_name)}</option>`
+            ).join('');
+    }
+
+    async function handleCreateDocument() {
+        const name = document.getElementById('docName').value;
+        const content = document.getElementById('docContent').value;
+
+        if (!name) {
+            alert('Please enter document name');
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/documents`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ name, content })
+            });
+
+            if (res.ok) {
+                document.getElementById('createMessage').innerHTML = '<div class="success">✓ Document created successfully!</div>';
+                document.getElementById('docName').value = '';
+                document.getElementById('docContent').value = '';
+                setTimeout(() => {
+                    document.getElementById('createMessage').innerHTML = '';
+                    fetchDocuments();
+                }, 1500);
+            } else {
+                alert('Failed to create document');
+            }
+        } catch (err) {
+            alert('Error: ' + err.message);
+        }
+    }
+
+    async function viewDocument(docId) {
+        viewingDocId = docId;
+        try {
+            const res = await fetch(`${API_URL}/documents/${docId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('viewDocContent').textContent = data.content;
+                document.getElementById('viewPermission').textContent = data.permission;
+                document.getElementById('viewModal').classList.add('active');
+            }
+        } catch (err) {
+            alert('Error loading document');
+        }
+    }
+
+    async function editDocument(docId) {
+        editingDocId = docId;
+        try {
+            const res = await fetch(`${API_URL}/documents/${docId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('editDocContent').value = data.content;
+                document.getElementById('editModal').classList.add('active');
+            }
+        } catch (err) {
+            alert('Error loading document');
+        }
+    }
+
+    async function handleEditDocument() {
+        const content = document.getElementById('editDocContent').value;
+
+        try {
+            const res = await fetch(`${API_URL}/documents/${editingDocId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ content })
+            });
+
+            if (res.ok) {
+                alert('Document updated!');
+                closeModal('editModal');
+                fetchDocuments();
+            } else {
+                alert('Failed to update document');
+            }
+        } catch (err) {
+            alert('Error: ' + err.message);
+        }
+    }
+
+    async function handleShareDocument() {
+        const docId = document.getElementById('docToShare').value;
+        const email = document.getElementById('shareEmail').value;
+        const permission = document.getElementById('sharePermission').value;
+
+        if (!docId || !email) {
+            alert('Please select document and enter email');
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/documents/${docId}/share`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ email, permission })
+            });
+
+            if (res.ok) {
+                document.getElementById('shareMessage').innerHTML = '<div class="success">✓ Document shared successfully!</div>';
+                document.getElementById('shareEmail').value = '';
+                setTimeout(() => {
+                    document.getElementById('shareMessage').innerHTML = '';
+                }, 1500);
+            } else {
+                const data = await res.json();
+                alert(data.message || 'Failed to share');
+            }
+        } catch (err) {
+            alert('Error: ' + err.message);
+        }
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('active');
+    }
+
+    function switchTab(tabName) {
+        document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+
+        if (tabName === 'my-docs') {
+            document.getElementById('myDocsSection').classList.remove('hidden');
+            document.querySelectorAll('.nav-tab')[0].classList.add('active');
+        } else if (tabName === 'shared-docs') {
+            document.getElementById('sharedDocsSection').classList.remove('hidden');
+            document.querySelectorAll('.nav-tab')[1].classList.add('active');
+        } else if (tabName === 'share') {
+            document.getElementById('shareSection').classList.remove('hidden');
+            document.querySelectorAll('.nav-tab')[2].classList.add('active');
+        }
+    }
+
+    function escapeHtml(text) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    // Close modals on outside click
+    document.addEventListener('click', (e) => {
+        if (e.target.id === 'viewModal') closeModal('viewModal');
+        if (e.target.id === 'editModal') closeModal('editModal');
+    });
+</script>
+
+</body>
+</html>
