@@ -1,5 +1,5 @@
 **Document Collaboration Tool - Web UI**  
-I've created a complete web UI connected to your app.py document collaboration tool! 🎉  
+I've created a complete web document collaboration tool! 🎉  
 **What's Created**  
 **📁 Files Generated:**  
 1. **flask_app.py** - REST API backend converted from your CLI app  
